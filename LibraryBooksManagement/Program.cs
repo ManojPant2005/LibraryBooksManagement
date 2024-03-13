@@ -1,13 +1,27 @@
-using LibraryBooksManagement.Data;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
+using LibraryBooksManagement.Data.Configuration;
+using LibraryBooksManagement.Data.Entity;
+using LibraryBooksManagement.Services;
+using Microsoft.EntityFrameworkCore;
+using Syncfusion.Blazor;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
+builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient("LocalApi", client => client.BaseAddress = new Uri("https://localhost:7204/"));
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Database connection string not found"));
+});
+
+Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(licenseKey: "Ngo9BigBOggjHTQxAR8/V1NAaF1cVGhIfEx1RHxQdld5ZFRHallYTnNWUj0eQnxTdEFjWn5dcHRQRGJYUE1yXw==");
+
+builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddSingleton<State>();
+builder.Services.AddSyncfusionBlazor();
 
 var app = builder.Build();
 
@@ -23,7 +37,9 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
+
 app.UseRouting();
+app.MapControllers();
 
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
